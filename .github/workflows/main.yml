@@ -1,0 +1,41 @@
+name: Simular VHDL
+
+on: [push, workflow_dispatch]
+
+jobs:
+  simular:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Instalar GHDL
+        run: |
+          sudo apt update
+          sudo apt install -y ghdl gtkwave zip
+
+      - name: Compilar e Simular
+        run: |
+          mkdir resultados
+          ghdl -a *.vhdl
+          
+          # Testbench 2 entradas
+          ghdl -e pl_tb_2
+          ghdl -r pl_tb_2 --stop-time=40ns --wave=resultados/pl_tb_2.ghw
+          
+          # Testbench 3 entradas
+          ghdl -e pl_tb_3
+          ghdl -r pl_tb_3 --stop-time=80ns --wave=resultados/pl_tb_3.ghw
+          
+          # Testbench 4 entradas
+          ghdl -e pl_tb_4
+          ghdl -r pl_tb_4 --stop-time=120ns --wave=resultados/pl_tb_4.ghw
+
+          zip -r resultados.zip resultados
+
+      - name: Upload dos artefatos
+        uses: actions/upload-artifact@v3
+        with:
+          name: resultados-simulacao
+          path: resultados.zip
+          
